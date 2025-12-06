@@ -20,6 +20,12 @@ export const Layout = ({ children }) => {
     { label: 'Settings', path: '/settings' },
   ];
 
+  // Add Team for admins
+  const isAdmin = ['super-admin', 'tenant-admin'].includes(userClaims?.role);
+  if (isAdmin) {
+    navItems.splice(navItems.length - 1, 0, { label: 'Team', path: '/team' });
+  }
+
   // Super Admin navigation items
   const adminNavItems = userClaims?.role === 'super-admin' ? [
     { label: '🔧 Admin Dashboard', path: '/admin' },

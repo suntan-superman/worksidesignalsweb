@@ -12,6 +12,7 @@ import { SensorDetailPage } from './pages/SensorDetailPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { TenantsPage } from './pages/TenantsPage';
+import { TeamPage } from './pages/TeamPage';
 
 // Register Syncfusion license from environment variable
 const syncfusionKey = import.meta.env.VITE_SYNCFUSION_KEY;
@@ -70,6 +71,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/team"
+              element={
+                <ProtectedRoute>
+                  <TeamPage />
                 </ProtectedRoute>
               }
             />

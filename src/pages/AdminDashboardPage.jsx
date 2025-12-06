@@ -51,6 +51,19 @@ export const AdminDashboardPage = () => {
               </p>
             </div>
           </div>
+        ) : !data ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-yellow-900 mb-2">No Data Received</h3>
+            <p className="text-yellow-700">The API returned successfully but with no data.</p>
+            <div className="bg-white p-4 rounded border border-yellow-200 mt-4">
+              <p className="text-sm font-mono text-gray-600">
+                Check if the backend is properly deployed and the /api/admin/dashboard route exists.
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Your role: {userClaims?.role || 'none'}
+              </p>
+            </div>
+          </div>
         ) : (
           <>
             {/* Stats Grid */}
