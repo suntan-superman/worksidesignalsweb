@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/* Syncfusion Grid Custom Styling - Green Theme */
+.e-grid {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.e-grid .e-headercell {
+  background-color: #f8fafc !important;
+  color: #374151 !important;
+  font-weight: 600 !important;
+}
+
+.e-grid .e-rowcell {
+  border-color: #e5e7eb !important;
+}
+
+.e-grid .e-row:hover .e-rowcell {
+  background-color: #f0fdf4 !important;
+}
+
+.e-grid .e-row.e-altrow .e-rowcell {
+  background-color: #fafafa !important;
+}
+
+.e-grid .e-toolbar {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.e-grid .e-toolbar .e-btn {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+  color: white !important;
+}
+
+.e-grid .e-toolbar .e-btn:hover {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+}
+
+/* Pager styling - GREEN instead of magenta */
+.e-grid .e-pager {
+  background-color: #ffffff !important;
+  border-top: 1px solid #e5e7eb !important;
+}
+
+.e-grid .e-pager .e-currentitem {
+  background-color: #10b981 !important;
+  color: white !important;
+  border-color: #10b981 !important;
+}
+
+.e-grid .e-pager .e-numericitem:hover {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+}
+
+/* Filter popup styling */
+.e-grid .e-filterbar input {
+  border-color: #d1d5db !important;
+}
+
+.e-grid .e-filterbar input:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Selection styling */
+.e-grid .e-selectionbackground {
+  background-color: #dcfce7 !important;
+}
+
+/* Filter menu checkboxes */
+.e-checkbox-wrapper .e-frame.e-check {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+}
+
+/* Sort icon color */
+.e-grid .e-icon-ascending,
+.e-grid .e-icon-descending {
+  color: #10b981 !important;
+}
+
+@layer components {
+  .btn-primary {
+    padding: 0.5rem 1rem;
+    background-color: rgb(22 163 74);
+    color: white;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition-property: background-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(21 128 61);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    padding: 0.5rem 1rem;
+    background-color: rgb(229 231 235);
+    color: rgb(17 24 39);
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition-property: background-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  .btn-secondary:hover {
+    background-color: rgb(209 213 219);
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .badge-severity {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid rgb(229 231 235);
+  }
+
+  .page-header {
+    padding: 1.5rem 1rem;
+    background-color: white;
+    border-bottom: 1px solid rgb(229 231 235);
+  }
+
+  @media (min-width: 640px) {
+    .page-header {
+      padding: 1.5rem 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-header {
+      padding: 1.5rem 2rem;
+    }
+  }
+}
+
+
