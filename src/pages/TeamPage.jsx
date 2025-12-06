@@ -181,33 +181,33 @@ export const TeamPage = () => {
                         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-3">
                           {user.status === 'invited' ? (
                             <button
                               onClick={() => resendInviteMutation.mutate(user.id)}
                               disabled={resendInviteMutation.isPending}
-                              className="text-primary-600 hover:text-primary-900 disabled:opacity-50"
+                              className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 transition-colors"
                             >
                               {resendInviteMutation.isPending ? 'Sending...' : 'Resend Invite'}
                             </button>
                           ) : (
                             <button
                               onClick={() => {/* TODO: Edit user */}}
-                              className="text-primary-600 hover:text-primary-900"
+                              className="text-primary-600 hover:text-primary-800 font-medium"
                             >
                               Edit
                             </button>
                           )}
                           <button
                             onClick={() => resendInviteMutation.mutate(user.id)}
-                            className="text-gray-600 hover:text-gray-900"
+                            className="text-blue-600 hover:text-blue-800 font-medium"
                           >
                             Reset PW
                           </button>
                           {user.status !== 'disabled' && (
                             <button
                               onClick={() => {/* TODO: Disable user */}}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-600 hover:text-red-800 font-medium"
                             >
                               Disable
                             </button>
