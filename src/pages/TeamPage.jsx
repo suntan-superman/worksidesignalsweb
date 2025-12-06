@@ -8,6 +8,7 @@ export const TeamPage = () => {
   const { userClaims } = useAuth();
   const queryClient = useQueryClient();
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [resetLinkModal, setResetLinkModal] = useState(null);
 
   // Only admins can access
   const isAdmin = ['super-admin', 'tenant-admin'].includes(userClaims?.role);
@@ -41,8 +42,19 @@ export const TeamPage = () => {
       const response = await apiClient.post(`/users/${userId}/reset-password`);
       return response.data;
     },
-    onSuccess: () => {
-      alert('Invitation resent successfully!');
+    onSuccess: (data) => {
+      if (data.success) {
+        alert('✅ Invitation email sent successfully!');
+      } else if (data.resetLink) {
+        // Email failed - show reset link modal
+        setResetLinkModal({
+          email: data.email || 'the user',
+          link: data.resetLink,
+          message: data.message,
+        });
+      } else {
+        alert('Failed to send invitation');
+      }
     },
     onError: (error) => {
       alert(`Failed to resend invitation: ${error.response?.data?.message || error.message}`);
@@ -186,30 +198,30 @@ export const TeamPage = () => {
                             <button
                               onClick={() => resendInviteMutation.mutate(user.id)}
                               disabled={resendInviteMutation.isPending}
-                              className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                              className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors font-medium shadow-sm"
                             >
-                              {resendInviteMutation.isPending ? 'Sending...' : 'Resend Invite'}
+                              {resendInviteMutation.isPending ? 'Sending...' : '📧 Resend Invite'}
                             </button>
                           ) : (
                             <button
                               onClick={() => {/* TODO: Edit user */}}
-                              className="text-primary-600 hover:text-primary-800 font-medium"
+                              className="text-primary-600 hover:text-primary-800 font-semibold"
                             >
-                              Edit
+                              ✏️ Edit
                             </button>
                           )}
                           <button
                             onClick={() => resendInviteMutation.mutate(user.id)}
-                            className="text-blue-600 hover:text-blue-800 font-medium"
+                            className="text-blue-600 hover:text-blue-800 font-semibold"
                           >
-                            Reset PW
+                            🔑 Reset PW
                           </button>
                           {user.status !== 'disabled' && (
                             <button
                               onClick={() => {/* TODO: Disable user */}}
-                              className="text-red-600 hover:text-red-800 font-medium"
+                              className="text-red-600 hover:text-red-800 font-semibold"
                             >
-                              Disable
+                              🚫 Disable
                             </button>
                           )}
                         </div>
@@ -229,14 +241,57 @@ export const TeamPage = () => {
           onClose={() => setShowInviteModal(false)}
           tenantId={userClaims?.tenantId}
           isSuperAdmin={userClaims?.role === 'super-admin'}
+          setResetLinkModal={setResetLinkModal}
         />
+      )}
+
+      {/* Reset Link Modal (when email service not configured) */}
+      {resetLinkModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">📧 Email Service Not Configured</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {resetLinkModal.message}
+            </p>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <p className="text-sm font-semibold text-yellow-900 mb-2">📋 Copy & Share This Password Reset Link:</p>
+              <div className="bg-white p-3 rounded border border-yellow-300">
+                <code className="text-xs text-gray-800 break-all block">{resetLinkModal.link}</code>
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(resetLinkModal.link);
+                  alert('✅ Link copied to clipboard!');
+                }}
+                className="mt-3 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm font-medium shadow-sm"
+              >
+                📋 Copy Link to Clipboard
+              </button>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-xs text-blue-800">
+                <strong>💡 How to use:</strong> Send this link to the user via Slack, email, SMS, or any messaging app. 
+                They'll use it to set their password and activate their account. <strong>Link expires in 24 hours.</strong>
+              </p>
+            </div>
+
+            <button
+              onClick={() => setResetLinkModal(null)}
+              className="btn-primary w-full"
+            >
+              Done
+            </button>
+          </div>
+        </div>
       )}
     </Layout>
   );
 };
 
 // Invite User Modal Component
-function InviteUserModal({ onClose, tenantId, isSuperAdmin }) {
+function InviteUserModal({ onClose, tenantId, isSuperAdmin, setResetLinkModal }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     email: '',
@@ -258,8 +313,19 @@ function InviteUserModal({ onClose, tenantId, isSuperAdmin }) {
       queryClient.invalidateQueries(['users', tenantId]);
       
       if (data.temporaryPassword) {
+        // Show temp password modal
         setTempPassword(data.temporaryPassword);
+      } else if (data.resetLink) {
+        // Email failed - show reset link
+        setResetLinkModal({
+          email: data.email || formData.email,
+          link: data.resetLink,
+          message: data.message || 'Email not configured',
+        });
+        onClose();
       } else {
+        // Success - email sent
+        alert('✅ Invitation sent successfully!');
         onClose();
       }
     },
