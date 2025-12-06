@@ -35,6 +35,20 @@ export const TeamPage = () => {
     enabled: !!userClaims?.tenantId,
   });
 
+  // Resend invitation
+  const resendInviteMutation = useMutation({
+    mutationFn: async (userId) => {
+      const response = await apiClient.post(`/users/${userId}/reset-password`);
+      return response.data;
+    },
+    onSuccess: () => {
+      alert('Invitation resent successfully!');
+    },
+    onError: (error) => {
+      alert(`Failed to resend invitation: ${error.response?.data?.message || error.message}`);
+    },
+  });
+
   const getRoleBadge = (role) => {
     const styles = {
       'super-admin': 'bg-red-100 text-red-800',
@@ -168,14 +182,24 @@ export const TeamPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
+                          {user.status === 'invited' ? (
+                            <button
+                              onClick={() => resendInviteMutation.mutate(user.id)}
+                              disabled={resendInviteMutation.isPending}
+                              className="text-primary-600 hover:text-primary-900 disabled:opacity-50"
+                            >
+                              {resendInviteMutation.isPending ? 'Sending...' : 'Resend Invite'}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {/* TODO: Edit user */}}
+                              className="text-primary-600 hover:text-primary-900"
+                            >
+                              Edit
+                            </button>
+                          )}
                           <button
-                            onClick={() => {/* TODO: Edit user */}}
-                            className="text-primary-600 hover:text-primary-900"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => {/* TODO: Reset password */}}
+                            onClick={() => resendInviteMutation.mutate(user.id)}
                             className="text-gray-600 hover:text-gray-900"
                           >
                             Reset PW
