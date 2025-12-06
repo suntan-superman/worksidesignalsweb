@@ -12,13 +12,19 @@ export const AdminDashboardPage = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['admin-dashboard'],
     queryFn: async () => {
       const response = await apiClient.get('/admin/dashboard');
       return response.data;
     },
+    retry: 1,
   });
+
+  // Debug logging
+  console.log('User Claims:', userClaims);
+  console.log('API Data:', data);
+  console.log('API Error:', error);
 
   return (
     <Layout>
@@ -30,6 +36,21 @@ export const AdminDashboardPage = () => {
       <div className="p-4 sm:p-6 lg:p-8">
         {isLoading ? (
           <LoadingState />
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Admin Dashboard</h3>
+            <p className="text-red-700 mb-4">{error.message}</p>
+            <div className="bg-white p-4 rounded border border-red-200">
+              <p className="text-sm font-mono text-gray-600">
+                {error.response?.status === 403 
+                  ? 'Access Denied: You may not have super-admin role set properly.'
+                  : error.response?.data?.message || 'Unknown error'}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Your role: {userClaims?.role || 'none'}
+              </p>
+            </div>
+          </div>
         ) : (
           <>
             {/* Stats Grid */}
