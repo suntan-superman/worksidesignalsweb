@@ -10,6 +10,7 @@ export const Layout = ({ children }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
 
+  const { userClaims } = useAuth();
   const isActive = (path) => location.pathname === path;
 
   const navItems = [
@@ -18,6 +19,12 @@ export const Layout = ({ children }) => {
     { label: 'Sensors', path: '/sensors' },
     { label: 'Settings', path: '/settings' },
   ];
+
+  // Super Admin navigation items
+  const adminNavItems = userClaims?.role === 'super-admin' ? [
+    { label: '🔧 Admin Dashboard', path: '/admin' },
+    { label: '🏢 Tenants', path: '/admin/tenants' },
+  ] : [];
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
@@ -66,6 +73,26 @@ export const Layout = ({ children }) => {
                   {item.label}
                 </Link>
               ))}
+              
+              {/* Admin Navigation (Super Admin Only) */}
+              {adminNavItems.length > 0 && (
+                <>
+                  <div className="w-px h-8 bg-gray-300 mx-2 self-center" />
+                  {adminNavItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive(item.path)
+                          ? 'bg-red-100 text-red-700'
+                          : 'text-gray-700 hover:bg-red-50'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </>
+              )}
             </nav>
 
             {/* User Menu */}
@@ -119,6 +146,27 @@ export const Layout = ({ children }) => {
                   {item.label}
                 </Link>
               ))}
+              
+              {/* Admin Navigation (Mobile) */}
+              {adminNavItems.length > 0 && (
+                <>
+                  <div className="border-t border-gray-200 my-2" />
+                  {adminNavItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                        isActive(item.path)
+                          ? 'bg-red-100 text-red-700'
+                          : 'text-gray-700 hover:bg-red-50'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </>
+              )}
             </nav>
           )}
         </div>

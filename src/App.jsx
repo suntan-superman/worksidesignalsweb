@@ -10,6 +10,8 @@ import { AlertsPage } from './pages/AlertsPage';
 import { SensorsPage } from './pages/SensorsPage';
 import { SensorDetailPage } from './pages/SensorDetailPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { TenantsPage } from './pages/TenantsPage';
 
 // Register Syncfusion license from environment variable
 const syncfusionKey = import.meta.env.VITE_SYNCFUSION_KEY;
@@ -68,6 +70,24 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Routes (Super Admin Only) */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/tenants"
+              element={
+                <ProtectedRoute>
+                  <TenantsPage />
                 </ProtectedRoute>
               }
             />
