@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ConfirmationModal } from './ConfirmationModal';
+import TenantSwitcher from './TenantSwitcher';
 
 // Icons (using Unicode/Emoji for simplicity - you could use react-icons later)
 const Icons = {
@@ -185,6 +186,14 @@ export const Layout = ({ children }) => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-screen">
+        {/* Top Bar (Desktop) - Hidden on mobile */}
+        <header className="hidden lg:block bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+          <div className="flex items-center justify-between px-6 py-3">
+            <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+            <TenantSwitcher />
+          </div>
+        </header>
+
         {/* Top Bar (Mobile) */}
         <header className="lg:hidden bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
           <div className="flex items-center justify-between px-4 py-3">

@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { Layout, PageHeader, Card, LoadingState, EmptyState } from '../components';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/api-client';
+import CreateTenantModal from '../components/CreateTenantModal';
+import toast from 'react-hot-toast';
 
 export const TenantsPage = () => {
   const { userClaims } = useAuth();
@@ -118,23 +120,15 @@ export const TenantsPage = () => {
         )}
       </div>
 
-      {/* Create Tenant Modal - TODO: Implement */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Tenant</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              This feature is coming soon. For now, create tenants via the API.
-            </p>
-            <button
-              onClick={() => setShowCreateModal(false)}
-              className="btn-secondary w-full"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Create Tenant Modal */}
+      <CreateTenantModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={(newTenant) => {
+          queryClient.invalidateQueries(['tenants']);
+          toast.success(`Tenant "${newTenant.name}" created successfully!`);
+        }}
+      />
     </Layout>
   );
 };

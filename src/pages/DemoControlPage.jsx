@@ -6,16 +6,16 @@ import toast from 'react-hot-toast';
 
 export default function DemoControlPage() {
   const navigate = useNavigate();
-  const { currentUser, userClaims } = useAuth();
+  const { currentUser, userClaims, getEffectiveTenantId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
-  const [tenantId, setTenantId] = useState(userClaims?.tenantId || '');
 
   // Check current demo status
   const checkStatus = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/demo/status?tenantId=${tenantId || userClaims?.tenantId}`);
+      const effectiveTenantId = getEffectiveTenantId();
+      const response = await apiClient.get(`/demo/status?tenantId=${effectiveTenantId}`);
       setStatus(response.data);
       toast.success('Status loaded!');
     } catch (error) {
@@ -28,7 +28,8 @@ export default function DemoControlPage() {
 
   // Populate demo data
   const populateData = async () => {
-    if (!window.confirm('This will generate 25 sensors and 7 days of data. Continue?')) {
+    const effectiveTenantId = getEffectiveTenantId();
+    if (!window.confirm(`This will generate 25 sensors and 7 days of data for tenant: ${effectiveTenantId}. Continue?`)) {
       return;
     }
 
@@ -37,7 +38,7 @@ export default function DemoControlPage() {
       toast.loading('Generating demo data... This may take 30-60 seconds.');
       
       const response = await apiClient.post('/demo/populate', {
-        tenantId: tenantId || userClaims?.tenantId,
+        tenantId: effectiveTenantId,
         sensorCount: 25,
         daysOfHistory: 7,
       });
@@ -58,7 +59,8 @@ export default function DemoControlPage() {
 
   // Clear demo data
   const clearData = async () => {
-    if (!window.confirm('⚠️ This will DELETE all sensors, alerts, and time-series data for this tenant. Are you sure?')) {
+    const effectiveTenantId = getEffectiveTenantId();
+    if (!window.confirm(`⚠️ This will DELETE all sensors, alerts, and time-series data for tenant: ${effectiveTenantId}. Are you sure?`)) {
       return;
     }
 
@@ -67,7 +69,7 @@ export default function DemoControlPage() {
       toast.loading('Clearing demo data...');
       
       const response = await apiClient.delete('/demo/clear', {
-        data: { tenantId: tenantId || userClaims?.tenantId },
+        data: { tenantId: effectiveTenantId },
       });
 
       toast.dismiss();
@@ -98,25 +100,21 @@ export default function DemoControlPage() {
             📊 View Dashboard
           </button>
         </div>
-        <p className="text-gray-600 mb-8">
+        <p className="text-gray-600 mb-6">
           Generate realistic demo data for sales calls and testing
         </p>
 
-        {/* Tenant Selection (Super Admin Only) */}
+        {/* Active Tenant Display */}
         {userClaims?.role === 'super-admin' && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Target Tenant ID
-            </label>
-            <input
-              type="text"
-              value={tenantId}
-              onChange={(e) => setTenantId(e.target.value)}
-              placeholder="Enter tenant ID"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm font-medium text-gray-700 mb-1">
+              📌 Currently Managing Tenant
+            </p>
+            <p className="text-lg font-bold text-blue-600">
+              {getEffectiveTenantId()}
+            </p>
             <p className="text-xs text-gray-500 mt-1">
-              Leave blank to use your current tenant ({userClaims?.tenantId})
+              Use the tenant switcher in the header to change tenants
             </p>
           </div>
         )}
