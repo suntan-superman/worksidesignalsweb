@@ -47,6 +47,14 @@ export default {
         800: '#166534',
         900: '#145231',
       },
+      emerald: {
+        50: '#ecfdf5',
+        600: '#059669',
+      },
+      teal: {
+        50: '#f0fdfa',
+        200: '#99f6e4',
+      },
       // Severity colors for alerts
       red: {
         50: '#fef2f2',
