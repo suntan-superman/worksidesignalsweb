@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { Layout, PageHeader, Card, LoadingState, EmptyState } from '../components';
 import apiClient from '../services/api-client';
+import toast from 'react-hot-toast';
 
 export const TeamPage = () => {
   const { userClaims } = useAuth();
@@ -44,7 +45,7 @@ export const TeamPage = () => {
     },
     onSuccess: (data) => {
       if (data.success) {
-        alert('✅ Invitation email sent successfully!');
+        toast.success('Invitation email sent successfully!');
       } else if (data.resetLink) {
         // Email failed - show reset link modal
         setResetLinkModal({
@@ -52,12 +53,13 @@ export const TeamPage = () => {
           link: data.resetLink,
           message: data.message,
         });
+        toast.warning('Email service unavailable. Use the manual link below.');
       } else {
-        alert('Failed to send invitation');
+        toast.error('Failed to send invitation');
       }
     },
     onError: (error) => {
-      alert(`Failed to resend invitation: ${error.response?.data?.message || error.message}`);
+      toast.error(error.response?.data?.message || 'Failed to resend invitation');
     },
   });
 
@@ -262,7 +264,7 @@ export const TeamPage = () => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(resetLinkModal.link);
-                  alert('✅ Link copied to clipboard!');
+                  toast.success('Link copied to clipboard!');
                 }}
                 className="mt-3 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm font-medium shadow-sm"
               >
@@ -325,7 +327,7 @@ function InviteUserModal({ onClose, tenantId, isSuperAdmin, setResetLinkModal })
         onClose();
       } else {
         // Success - email sent
-        alert('✅ Invitation sent successfully!');
+        toast.success('Invitation sent successfully!');
         onClose();
       }
     },
