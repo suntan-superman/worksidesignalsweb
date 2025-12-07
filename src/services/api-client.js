@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthInstance } from '../config/firebase';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://workside-signals-api-106435684252.us-central1.run.app';
 
 // Create axios instance
 const apiClient = axios.create({
