@@ -4,7 +4,7 @@ import { SeverityBadge } from './SeverityBadge';
 
 const GRID_STORAGE_KEY = 'workside_alerts_grid_columns';
 
-export const AlertsGrid = ({ alerts, isLoading, onAcknowledge }) => {
+export const AlertsGrid = ({ alerts, isLoading, onAcknowledge, onExplainAlert }) => {
   const gridRef = useRef(null);
 
   // Load saved column widths from localStorage - MUST be before any early returns
@@ -82,27 +82,53 @@ export const AlertsGrid = ({ alerts, isLoading, onAcknowledge }) => {
 
   // Custom template for action button
   const actionTemplate = (props) => {
-    return props.status === 'active' ? (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onAcknowledge(props.id);
-        }}
-        style={{
-          padding: '0.375rem 0.75rem',
-          backgroundColor: '#16a34a',
-          color: 'white',
-          border: 'none',
-          borderRadius: '0.375rem',
-          cursor: 'pointer',
-          fontSize: '0.75rem',
-          fontWeight: '500'
-        }}
-      >
-        Acknowledge
-      </button>
-    ) : (
-      <span style={{ color: '#999', fontSize: '0.75rem' }}>Acknowledged</span>
+    return (
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onExplainAlert) {
+              onExplainAlert(props);
+            }
+          }}
+          style={{
+            padding: '0.375rem 0.75rem',
+            backgroundColor: '#2563eb',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.375rem',
+            cursor: 'pointer',
+            fontSize: '0.75rem',
+            fontWeight: '500',
+            whiteSpace: 'nowrap'
+          }}
+          title="AI Explanation"
+        >
+          🤖 Explain
+        </button>
+        {props.status === 'active' ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAcknowledge(props.id);
+            }}
+            style={{
+              padding: '0.375rem 0.75rem',
+              backgroundColor: '#16a34a',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: '500'
+            }}
+          >
+            Acknowledge
+          </button>
+        ) : (
+          <span style={{ color: '#999', fontSize: '0.75rem' }}>Acknowledged</span>
+        )}
+      </div>
     );
   };
 
@@ -182,9 +208,9 @@ export const AlertsGrid = ({ alerts, isLoading, onAcknowledge }) => {
           />
           <ColumnDirective
             field="id"
-            headerText="Action"
-            width={getColumnWidth('action', 130)}
-            minWidth={120}
+            headerText="Actions"
+            width={getColumnWidth('actions', 220)}
+            minWidth={200}
             template={actionTemplate}
             allowSorting={false}
             allowFiltering={false}

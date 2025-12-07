@@ -12,6 +12,7 @@ const Icons = {
   Settings: () => <span className="text-xl">⚙️</span>,
   Admin: () => <span className="text-xl">🔧</span>,
   Tenants: () => <span className="text-xl">🏢</span>,
+  Demo: () => <span className="text-xl">🎬</span>,
   Menu: () => <span className="text-xl">☰</span>,
   Close: () => <span className="text-xl">✕</span>,
   Logout: () => <span className="text-xl">🚪</span>,
@@ -45,6 +46,7 @@ export const Layout = ({ children }) => {
   const adminNavItems = userClaims?.role === 'super-admin' ? [
     { label: 'Admin Dashboard', path: '/admin', icon: Icons.Admin },
     { label: 'Tenants', path: '/admin/tenants', icon: Icons.Tenants },
+    { label: 'Demo Control', path: '/admin/demo', icon: Icons.Demo },
   ] : [];
 
   const handleLogoutClick = () => {
@@ -170,9 +172,10 @@ export const Layout = ({ children }) => {
             onClick={handleLogoutClick}
             className="
               w-full flex items-center space-x-2 px-4 py-2.5 rounded-lg
-              bg-primary-600 hover:bg-primary-500 text-black
-              transition-colors duration-200 font-medium
+              bg-red-600 hover:bg-red-700 text-white
+              transition-colors duration-200 font-medium shadow-md
             "
+            style={{ position: 'relative', zIndex: 10 }}
           >
             <Icons.Logout />
             <span>Log Out</span>

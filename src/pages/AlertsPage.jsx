@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAlerts, useUpdateAlertStatus } from '../hooks/queries';
 import { useAuth } from '../context/AuthContext';
 import { Layout, PageHeader, Card, LoadingState, EmptyState, SeverityBadge, AlertsGrid } from '../components';
+import AIExplanationModal from '../components/AIExplanationModal';
 
 export const AlertsPage = () => {
   const { currentUser } = useAuth();
@@ -13,6 +14,9 @@ export const AlertsPage = () => {
     searchTerm: '',
   });
 
+  const [selectedAlert, setSelectedAlert] = useState(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+
   const { data: alerts, isLoading } = useAlerts(tenantId, filters);
   const updateAlertMutation = useUpdateAlertStatus();
 
@@ -21,6 +25,20 @@ export const AlertsPage = () => {
       alertId,
       status: 'acknowledged',
     });
+  };
+
+  const handleExplainAlert = (alert) => {
+    // Create a mock sensor object from the alert data
+    const mockSensor = {
+      name: alert.sensorName,
+      type: alert.type,
+      units: 'units', // Could fetch from actual sensor
+      currentValue: null, // Could fetch from actual sensor
+      normalRange: { min: 0, max: 100 }, // Could fetch from actual sensor
+    };
+    
+    setSelectedAlert({ alert, sensor: mockSensor });
+    setShowAIModal(true);
   };
 
   const handleRowClick = (alertId) => {
@@ -42,6 +60,7 @@ export const AlertsPage = () => {
             alerts={alerts || []}
             isLoading={isLoading}
             onAcknowledge={handleAcknowledge}
+            onExplainAlert={handleExplainAlert}
           />
           {alerts && alerts.length === 0 && !isLoading && (
             <EmptyState
@@ -52,6 +71,18 @@ export const AlertsPage = () => {
           )}
         </Card>
       </div>
+
+      {/* AI Explanation Modal */}
+      {showAIModal && selectedAlert && (
+        <AIExplanationModal
+          alert={selectedAlert.alert}
+          sensor={selectedAlert.sensor}
+          onClose={() => {
+            setShowAIModal(false);
+            setSelectedAlert(null);
+          }}
+        />
+      )}
     </Layout>
   );
 };

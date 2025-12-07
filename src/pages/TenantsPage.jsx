@@ -105,7 +105,8 @@ export const TenantsPage = () => {
                     </button>
                     <button
                       onClick={() => {/* TODO: Switch to tenant */}}
-                      className="flex-1 px-3 py-2 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
+                      className="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors shadow-md"
+                      style={{ position: 'relative', zIndex: 10 }}
                     >
                       Switch To
                     </button>

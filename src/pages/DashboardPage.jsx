@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import { useDashboardSummary, useAlerts } from '../hooks/queries';
 import { useAuth } from '../context/AuthContext';
 import { Layout, PageHeader, Card, LoadingState, EmptyState, SeverityBadge } from '../components';
+import AIExplanationModal from '../components/AIExplanationModal';
 
 export const DashboardPage = () => {
   const { currentUser } = useAuth();
   const tenantId = 'default-tenant'; // In production, get from currentUser
   
+  const [selectedAlert, setSelectedAlert] = useState(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboardSummary(tenantId);
   const { data: recentAlerts, isLoading: alertsLoading } = useAlerts(tenantId, {
     searchTerm: '',
@@ -13,6 +18,19 @@ export const DashboardPage = () => {
   });
 
   const isLoading = dashboardLoading || alertsLoading;
+
+  const handleExplainAlert = (alert) => {
+    const mockSensor = {
+      name: alert.sensorName,
+      type: alert.type || 'unknown',
+      units: 'units',
+      currentValue: null,
+      normalRange: { min: 0, max: 100 },
+    };
+    
+    setSelectedAlert({ alert, sensor: mockSensor });
+    setShowAIModal(true);
+  };
 
   return (
     <Layout>
@@ -77,6 +95,7 @@ export const DashboardPage = () => {
                     <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Message</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Time</th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -99,6 +118,14 @@ export const DashboardPage = () => {
                       <td className="px-4 py-3 text-sm text-gray-500">
                         {new Date(alert.createdAt).toLocaleTimeString()}
                       </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleExplainAlert(alert)}
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium"
+                        >
+                          🤖 Explain
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -113,6 +140,18 @@ export const DashboardPage = () => {
           )}
         </Card>
       </div>
+
+      {/* AI Explanation Modal */}
+      {showAIModal && selectedAlert && (
+        <AIExplanationModal
+          alert={selectedAlert.alert}
+          sensor={selectedAlert.sensor}
+          onClose={() => {
+            setShowAIModal(false);
+            setSelectedAlert(null);
+          }}
+        />
+      )}
     </Layout>
   );
 };
