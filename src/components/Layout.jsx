@@ -14,6 +14,7 @@ const Icons = {
   Admin: () => <span className="text-xl">🔧</span>,
   Tenants: () => <span className="text-xl">🏢</span>,
   Demo: () => <span className="text-xl">🎬</span>,
+  AuditLogs: () => <span className="text-xl">📋</span>,
   Menu: () => <span className="text-xl">☰</span>,
   Close: () => <span className="text-xl">✕</span>,
   Logout: () => <span className="text-xl">🚪</span>,
@@ -47,6 +48,7 @@ export const Layout = ({ children }) => {
   const adminNavItems = userClaims?.role === 'super-admin' ? [
     { label: 'Admin Dashboard', path: '/admin', icon: Icons.Admin },
     { label: 'Tenants', path: '/admin/tenants', icon: Icons.Tenants },
+    { label: 'Audit Logs', path: '/admin/audit', icon: Icons.AuditLogs },
     { label: 'Demo Control', path: '/admin/demo', icon: Icons.Demo },
   ] : [];
 

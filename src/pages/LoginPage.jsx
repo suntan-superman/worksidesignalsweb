@@ -1,24 +1,70 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../services/auth';
+
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  const validateEmail = (emailValue) => {
+    if (!emailValue) {
+      setEmailError('');
+      return false;
+    }
+    if (!EMAIL_REGEX.test(emailValue)) {
+      setEmailError('Please enter a valid email address');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    if (value) validateEmail(value);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validate email before submission
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (!password) {
+      setError('Please enter your password');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       await loginUser(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      // Provide more specific error messages
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        setError('The email or password you entered is incorrect.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email address.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please try again later.');
+      } else {
+        setError(err.message || 'An error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -81,17 +127,31 @@ export const LoginPage = () => {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                  onChange={handleEmailChange}
+                  onBlur={() => validateEmail(email)}
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                    emailError ? 'border-red-300 bg-red-50' : 'border-gray-200'
+                  }`}
                   placeholder="you@example.com"
                   disabled={isLoading}
                 />
+                {emailError && (
+                  <p className="mt-1 text-xs text-red-500">{emailError}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Password
-                </label>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Password
+                  </label>
+                  <Link 
+                    to="/forgot-password" 
+                    className="text-sm text-green-600 hover:text-green-700 font-medium"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
                 <input
                   type="password"
                   required

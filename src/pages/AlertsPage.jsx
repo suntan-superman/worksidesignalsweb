@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAlerts, useUpdateAlertStatus } from '../hooks/queries';
+import { useAlerts, useUpdateAlertStatus, useDeleteAlert } from '../hooks/queries';
 import { useAuth } from '../context/AuthContext';
 import { Layout, PageHeader, Card, LoadingState, EmptyState, SeverityBadge, AlertsGrid } from '../components';
 import AIExplanationModal from '../components/AIExplanationModal';
@@ -19,12 +19,17 @@ export const AlertsPage = () => {
 
   const { data: alerts, isLoading } = useAlerts(tenantId, filters);
   const updateAlertMutation = useUpdateAlertStatus();
+  const deleteAlertMutation = useDeleteAlert();
 
   const handleAcknowledge = (alertId) => {
     updateAlertMutation.mutate({
       alertId,
       status: 'acknowledged',
     });
+  };
+
+  const handleDeleteAlert = (alertId) => {
+    deleteAlertMutation.mutate(alertId);
   };
 
   const handleExplainAlert = (alert) => {
@@ -61,6 +66,7 @@ export const AlertsPage = () => {
             isLoading={isLoading}
             onAcknowledge={handleAcknowledge}
             onExplainAlert={handleExplainAlert}
+            onDelete={handleDeleteAlert}
           />
           {alerts && alerts.length === 0 && !isLoading && (
             <EmptyState

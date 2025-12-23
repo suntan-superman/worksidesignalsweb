@@ -4,7 +4,7 @@ import { StatusBadge } from './StatusBadge';
 
 const GRID_STORAGE_KEY = 'workside_sensors_grid_columns';
 
-export const SensorsGrid = ({ sensors, isLoading, onRowClick }) => {
+export const SensorsGrid = ({ sensors, isLoading, onRowClick, onEdit, onDelete }) => {
   const gridRef = useRef(null);
 
   // Load saved column widths from localStorage - MUST be before any early returns
@@ -82,6 +82,58 @@ export const SensorsGrid = ({ sensors, isLoading, onRowClick }) => {
   // Custom template for well/pad
   const wellPadTemplate = (props) => {
     return `${props.wellName} / ${props.padName}`;
+  };
+
+  // Custom template for action buttons
+  const actionTemplate = (props) => {
+    return (
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        {onEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(props);
+            }}
+            style={{
+              padding: '0.375rem 0.75rem',
+              backgroundColor: '#2563eb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: '500'
+            }}
+            title="Edit sensor"
+          >
+            ✏️ Edit
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (window.confirm(`Are you sure you want to delete sensor "${props.name}"?`)) {
+                onDelete(props.id);
+              }
+            }}
+            style={{
+              padding: '0.375rem 0.75rem',
+              backgroundColor: '#dc2626',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: '500'
+            }}
+            title="Delete sensor"
+          >
+            🗑️ Delete
+          </button>
+        )}
+      </div>
+    );
   };
 
   // Check loading state AFTER all hooks
@@ -168,6 +220,17 @@ export const SensorsGrid = ({ sensors, isLoading, onRowClick }) => {
             format="yMd"
             allowFiltering={true}
           />
+          {(onEdit || onDelete) && (
+            <ColumnDirective
+              field="id"
+              headerText="Actions"
+              width={getColumnWidth('actions', 180)}
+              minWidth={160}
+              template={actionTemplate}
+              allowSorting={false}
+              allowFiltering={false}
+            />
+          )}
         </ColumnsDirective>
         <Inject services={[Page, Search, Filter, Sort, Toolbar, ExcelExport, Resize]} />
       </GridComponent>

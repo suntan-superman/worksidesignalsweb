@@ -1,4 +1,6 @@
-export const SeverityBadge = ({ severity }) => {
+import { memo } from 'react';
+
+export const SeverityBadge = memo(function SeverityBadge({ severity }) {
   const severityStyles = {
     critical: 'bg-red-100 text-red-800',
     high: 'bg-orange-100 text-orange-800',
@@ -13,5 +15,5 @@ export const SeverityBadge = ({ severity }) => {
       {severity}
     </span>
   );
-};
+});
 

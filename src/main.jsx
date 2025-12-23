@@ -5,6 +5,13 @@ import '@syncfusion/ej2/material.css'
 import './styles/index.css'
 import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { validateEnvironment } from './config/env-validation'
+
+// Validate environment variables at startup
+const envValidation = validateEnvironment();
+if (envValidation.valid) {
+  console.log('✅ Environment configuration validated');
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -1,4 +1,6 @@
-export const EmptyState = ({ title = 'No data', message = 'There is nothing to display', icon = '📭' }) => {
+import { memo } from 'react';
+
+export const EmptyState = memo(function EmptyState({ title = 'No data', message = 'There is nothing to display', icon = '📭' }) {
   return (
     <div className="flex items-center justify-center py-12">
       <div className="text-center max-w-md">
@@ -8,5 +10,5 @@ export const EmptyState = ({ title = 'No data', message = 'There is nothing to d
       </div>
     </div>
   );
-};
+});
 

@@ -1,19 +1,34 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { registerLicense } from '@syncfusion/ej2-base';
+import { Suspense, lazy } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components';
 import { queryClient } from './config/query-client';
 import { LoginPage } from './pages/LoginPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
-import { AlertsPage } from './pages/AlertsPage';
-import { SensorsPage } from './pages/SensorsPage';
-import { SensorDetailPage } from './pages/SensorDetailPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { AdminDashboardPage } from './pages/AdminDashboardPage';
-import { TenantsPage } from './pages/TenantsPage';
-import { TeamPage } from './pages/TeamPage';
-import DemoControlPage from './pages/DemoControlPage';
+import { LoadingState } from './components/LoadingState';
+
+// Lazy load less frequently accessed pages for better initial load performance
+const AlertsPage = lazy(() => import('./pages/AlertsPage').then(m => ({ default: m.AlertsPage })));
+const SensorsPage = lazy(() => import('./pages/SensorsPage').then(m => ({ default: m.SensorsPage })));
+const SensorDetailPage = lazy(() => import('./pages/SensorDetailPage').then(m => ({ default: m.SensorDetailPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
+const TenantsPage = lazy(() => import('./pages/TenantsPage').then(m => ({ default: m.TenantsPage })));
+const TeamPage = lazy(() => import('./pages/TeamPage').then(m => ({ default: m.TeamPage })));
+const DemoControlPage = lazy(() => import('./pages/DemoControlPage'));
+const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage'));
+
+/**
+ * Page loading fallback component
+ */
+const PageLoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <LoadingState message="Loading page..." size="large" />
+  </div>
+);
 
 // Register Syncfusion license from environment variable
 const syncfusionKey = import.meta.env.VITE_SYNCFUSION_KEY;
@@ -33,6 +48,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
             {/* Protected Routes */}
             <Route
@@ -47,7 +63,9 @@ function App() {
               path="/alerts"
               element={
                 <ProtectedRoute>
-                  <AlertsPage />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <AlertsPage />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -55,7 +73,9 @@ function App() {
               path="/sensors"
               element={
                 <ProtectedRoute>
-                  <SensorsPage />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <SensorsPage />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -63,7 +83,9 @@ function App() {
               path="/sensors/:sensorId"
               element={
                 <ProtectedRoute>
-                  <SensorDetailPage />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <SensorDetailPage />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -71,7 +93,9 @@ function App() {
               path="/settings"
               element={
                 <ProtectedRoute>
-                  <SettingsPage />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <SettingsPage />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -79,7 +103,9 @@ function App() {
               path="/team"
               element={
                 <ProtectedRoute>
-                  <TeamPage />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <TeamPage />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -89,7 +115,9 @@ function App() {
               path="/admin"
               element={
                 <ProtectedRoute>
-                  <AdminDashboardPage />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <AdminDashboardPage />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -97,7 +125,9 @@ function App() {
               path="/admin/tenants"
               element={
                 <ProtectedRoute>
-                  <TenantsPage />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <TenantsPage />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -105,7 +135,19 @@ function App() {
               path="/admin/demo"
               element={
                 <ProtectedRoute>
-                  <DemoControlPage />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <DemoControlPage />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/audit"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <AuditLogsPage />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />

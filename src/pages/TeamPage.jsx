@@ -10,6 +10,7 @@ export const TeamPage = () => {
   const queryClient = useQueryClient();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [resetLinkModal, setResetLinkModal] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
 
   // Only admins can access
   const isAdmin = ['super-admin', 'tenant-admin'].includes(userClaims?.role);
@@ -60,6 +61,37 @@ export const TeamPage = () => {
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to resend invitation');
+    },
+  });
+
+  // Update user
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ userId, updates }) => {
+      const response = await apiClient.put(`/users/${userId}`, updates);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setEditingUser(null);
+      toast.success('User updated successfully');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.error || 'Failed to update user');
+    },
+  });
+
+  // Disable user
+  const disableUserMutation = useMutation({
+    mutationFn: async (userId) => {
+      const response = await apiClient.put(`/users/${userId}`, { status: 'disabled' });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success('User disabled');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.error || 'Failed to disable user');
     },
   });
 
@@ -206,7 +238,7 @@ export const TeamPage = () => {
                             </button>
                           ) : (
                             <button
-                              onClick={() => {/* TODO: Edit user */}}
+                              onClick={() => setEditingUser(user)}
                               className="text-primary-600 hover:text-primary-800 font-semibold"
                             >
                               ✏️ Edit
@@ -220,8 +252,13 @@ export const TeamPage = () => {
                           </button>
                           {user.status !== 'disabled' && (
                             <button
-                              onClick={() => {/* TODO: Disable user */}}
-                              className="text-red-600 hover:text-red-800 font-semibold"
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to disable ${user.displayName || user.email}?`)) {
+                                  disableUserMutation.mutate(user.id);
+                                }
+                              }}
+                              disabled={disableUserMutation.isPending}
+                              className="text-red-600 hover:text-red-800 font-semibold disabled:opacity-50"
                             >
                               🚫 Disable
                             </button>
@@ -288,9 +325,100 @@ export const TeamPage = () => {
           </div>
         </div>
       )}
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+          onSave={(updates) => updateUserMutation.mutate({ userId: editingUser.id, updates })}
+          isSaving={updateUserMutation.isPending}
+          isSuperAdmin={userClaims?.role === 'super-admin'}
+        />
+      )}
     </Layout>
   );
 };
+
+// Edit User Modal Component
+function EditUserModal({ user, onClose, onSave, isSaving, isSuperAdmin }) {
+  const [formData, setFormData] = useState({
+    displayName: user.displayName || '',
+    role: user.role || 'tenant-user',
+    status: user.status || 'active',
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit User</h3>
+        <p className="text-sm text-gray-600 mb-4">{user.email}</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+            <input
+              type="text"
+              value={formData.displayName}
+              onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Full name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <select
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="tenant-user">User - Standard access</option>
+              <option value="tenant-readonly">Read-only - View access only</option>
+              <option value="tenant-admin">Admin - Full access to tenant</option>
+              {isSuperAdmin && <option value="super-admin">Super Admin - System-wide access</option>}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="active">Active</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 btn-secondary"
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 btn-primary"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 // Invite User Modal Component
 function InviteUserModal({ onClose, tenantId, isSuperAdmin, setResetLinkModal }) {
@@ -302,6 +430,23 @@ function InviteUserModal({ onClose, tenantId, isSuperAdmin, setResetLinkModal })
     skipEmail: false,
   });
   const [tempPassword, setTempPassword] = useState(null);
+  const [emailError, setEmailError] = useState('');
+
+  // Email validation regex
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e) => {
+    const email = e.target.value;
+    setFormData({ ...formData, email });
+    if (email && !validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+    } else {
+      setEmailError('');
+    }
+  };
 
   const inviteMutation = useMutation({
     mutationFn: async (data) => {
@@ -335,6 +480,10 @@ function InviteUserModal({ onClose, tenantId, isSuperAdmin, setResetLinkModal })
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validateEmail(formData.email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
     inviteMutation.mutate(formData);
   };
 
@@ -380,10 +529,15 @@ function InviteUserModal({ onClose, tenantId, isSuperAdmin, setResetLinkModal })
               type="email"
               required
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              onChange={handleEmailChange}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                emailError ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="user@company.com"
             />
+            {emailError && (
+              <p className="mt-1 text-sm text-red-600">{emailError}</p>
+            )}
           </div>
 
           <div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useDashboardSummary, useAlerts } from '../hooks/queries';
+import { useDashboardSummary, useAlerts, useAlertSummary } from '../hooks/queries';
 import { useAuth } from '../context/AuthContext';
-import { Layout, PageHeader, Card, LoadingState, EmptyState, SeverityBadge } from '../components';
+import { Layout, PageHeader, Card, LoadingState, EmptyState, SeverityBadge, ErrorState } from '../components';
 import AIExplanationModal from '../components/AIExplanationModal';
 
 export const DashboardPage = () => {
@@ -11,13 +11,40 @@ export const DashboardPage = () => {
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [showAIModal, setShowAIModal] = useState(false);
 
-  const { data: dashboardData, isLoading: dashboardLoading } = useDashboardSummary(tenantId);
-  const { data: recentAlerts, isLoading: alertsLoading } = useAlerts(tenantId, {
+  const { 
+    data: dashboardData, 
+    isLoading: dashboardLoading, 
+    error: dashboardError,
+    refetch: refetchDashboard 
+  } = useDashboardSummary(tenantId);
+  
+  // Use alert summary for counts (more efficient than fetching all alerts)
+  const {
+    data: alertSummary,
+    isLoading: summaryLoading,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useAlertSummary(tenantId);
+  
+  // Fetch recent alerts only (limited list for display)
+  const { 
+    data: recentAlerts, 
+    isLoading: alertsLoading, 
+    error: alertsError,
+    refetch: refetchAlerts 
+  } = useAlerts(tenantId, {
     searchTerm: '',
-    status: null,
+    status: 'active', // Only fetch active alerts for recent list
   });
 
-  const isLoading = dashboardLoading || alertsLoading;
+  const isLoading = dashboardLoading || alertsLoading || summaryLoading;
+  const hasError = dashboardError || alertsError || summaryError;
+
+  const handleRetry = () => {
+    if (dashboardError) refetchDashboard();
+    if (alertsError) refetchAlerts();
+    if (summaryError) refetchSummary();
+  };
 
   const handleExplainAlert = (alert) => {
     const mockSensor = {
@@ -42,6 +69,12 @@ export const DashboardPage = () => {
       <div className="p-4 sm:p-6 lg:p-8">
         {isLoading ? (
           <LoadingState />
+        ) : hasError ? (
+          <ErrorState 
+            title="Failed to load dashboard"
+            message={dashboardError?.message || alertsError?.message || summaryError?.message || "Unable to fetch dashboard data. Please try again."}
+            onRetry={handleRetry}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {/* Data Health Score Card */}
@@ -53,11 +86,13 @@ export const DashboardPage = () => {
               </div>
             </Card>
 
-            {/* Critical Alerts Card */}
+            {/* Critical Alerts Card - using summary endpoint */}
             <Card>
               <div className="text-center">
                 <p className="text-gray-600 text-sm font-medium mb-2">Critical Alerts</p>
-                <p className="text-4xl font-bold text-red-600">{dashboardData?.alertCounts.critical}</p>
+                <p className="text-4xl font-bold text-red-600">
+                  {alertSummary?.bySeverity?.critical || dashboardData?.alertCounts?.critical || 0}
+                </p>
                 <p className="text-gray-500 text-xs mt-2">Require immediate attention</p>
               </div>
             </Card>
@@ -71,11 +106,13 @@ export const DashboardPage = () => {
               </div>
             </Card>
 
-            {/* Acknowledged Alerts Card */}
+            {/* Acknowledged Alerts Card - using summary endpoint */}
             <Card>
               <div className="text-center">
                 <p className="text-gray-600 text-sm font-medium mb-2">Acknowledged</p>
-                <p className="text-4xl font-bold text-blue-600">{dashboardData?.acknowledgedAlerts}</p>
+                <p className="text-4xl font-bold text-blue-600">
+                  {alertSummary?.byStatus?.acknowledged || dashboardData?.acknowledgedAlerts || 0}
+                </p>
                 <p className="text-gray-500 text-xs mt-2">In progress</p>
               </div>
             </Card>

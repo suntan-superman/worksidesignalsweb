@@ -8,9 +8,11 @@ import CreateTenantModal from '../components/CreateTenantModal';
 import toast from 'react-hot-toast';
 
 export const TenantsPage = () => {
-  const { userClaims } = useAuth();
+  const { userClaims, switchTenant, activeTenantId } = useAuth();
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Only super-admins can access
   if (userClaims?.role !== 'super-admin') {
@@ -24,6 +26,26 @@ export const TenantsPage = () => {
       return response.data;
     },
   });
+
+  /**
+   * Switch to a tenant (or exit back to super-admin view)
+   * @param {Object} tenant - The tenant to switch to
+   */
+  const handleSwitchToTenant = (tenant) => {
+    if (activeTenantId === tenant.id) {
+      // Currently viewing this tenant, exit back to own tenant
+      switchTenant(userClaims?.tenantId || null);
+      toast.success('Switched back to super-admin view');
+      // Invalidate queries to refresh with super-admin context
+      queryClient.invalidateQueries();
+    } else {
+      // Switch to this tenant
+      switchTenant(tenant.id);
+      toast.success(`Switched to tenant "${tenant.name}"`);
+      // Invalidate queries to refresh with new tenant context
+      queryClient.invalidateQueries();
+    }
+  };
 
   return (
     <Layout>
@@ -100,17 +122,24 @@ export const TenantsPage = () => {
 
                   <div className="flex gap-2 pt-2">
                     <button
-                      onClick={() => {/* TODO: View tenant details */}}
+                      onClick={() => {
+                        setSelectedTenant(tenant);
+                        setShowDetailsModal(true);
+                      }}
                       className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
                     >
                       View
                     </button>
                     <button
-                      onClick={() => {/* TODO: Switch to tenant */}}
-                      className="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors shadow-md"
+                      onClick={() => handleSwitchToTenant(tenant)}
+                      className={`flex-1 px-3 py-2 text-sm rounded transition-colors shadow-md ${
+                        activeTenantId === tenant.id
+                          ? 'bg-orange-600 text-white hover:bg-orange-700'
+                          : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
                       style={{ position: 'relative', zIndex: 10 }}
                     >
-                      Switch To
+                      {activeTenantId === tenant.id ? 'Exit Tenant' : 'Switch To'}
                     </button>
                   </div>
                 </div>
@@ -129,7 +158,152 @@ export const TenantsPage = () => {
           toast.success(`Tenant "${newTenant.name}" created successfully!`);
         }}
       />
-    </Layout>
+
+      {/* Tenant Details Modal */}
+      {showDetailsModal && selectedTenant && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setShowDetailsModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Tenant Details</h2>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Header Info */}
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                    <span className="text-2xl font-bold text-gray-600">
+                      {selectedTenant.name?.[0]?.toUpperCase() || 'T'}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{selectedTenant.name}</h3>
+                    <p className="text-sm text-gray-500">{selectedTenant.id}</p>
+                    <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-semibold rounded ${
+                      selectedTenant.status === 'active' ? 'bg-green-100 text-green-800' :
+                      selectedTenant.status === 'trial' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedTenant.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-gray-50 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-gray-900">{selectedTenant.stats?.users || 0}</p>
+                    <p className="text-sm text-gray-500">Users</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-gray-900">{selectedTenant.stats?.sensors || 0}</p>
+                    <p className="text-sm text-gray-500">Sensors</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-gray-900">{selectedTenant.stats?.alerts || 0}</p>
+                    <p className="text-sm text-gray-500">Alerts</p>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="border-t border-gray-200 pt-4">
+                  <h4 className="font-semibold text-gray-900 mb-3">Contact Information</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Email</p>
+                      <p className="font-medium text-gray-900">{selectedTenant.email || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Phone</p>
+                      <p className="font-medium text-gray-900">{selectedTenant.phone || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Address</p>
+                      <p className="font-medium text-gray-900">{selectedTenant.address || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Industry</p>
+                      <p className="font-medium text-gray-900">{selectedTenant.industry || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subscription */}
+                <div className="border-t border-gray-200 pt-4">
+                  <h4 className="font-semibold text-gray-900 mb-3">Subscription</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Plan</p>
+                      <p className="font-medium text-gray-900 capitalize">{selectedTenant.subscription?.tier || 'starter'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Max Users</p>
+                      <p className="font-medium text-gray-900">{selectedTenant.subscription?.maxUsers || 5}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Max Sensors</p>
+                      <p className="font-medium text-gray-900">{selectedTenant.subscription?.maxSensors || 10}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">AI Queries/Day</p>
+                      <p className="font-medium text-gray-900">{selectedTenant.subscription?.aiQueriesPerDay || 10}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dates */}
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Created</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedTenant.createdAt ? new Date(selectedTenant.createdAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Last Updated</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedTenant.updatedAt ? new Date(selectedTenant.updatedAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="border-t border-gray-200 pt-4 flex gap-3">
+                  <button
+                    onClick={() => {
+                      handleSwitchToTenant(selectedTenant);
+                      setShowDetailsModal(false);
+                    }}
+                    className={`flex-1 px-4 py-2 rounded font-medium transition-colors ${
+                      activeTenantId === selectedTenant.id
+                        ? 'bg-orange-600 text-white hover:bg-orange-700'
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {activeTenantId === selectedTenant.id ? 'Exit Tenant View' : 'Switch to Tenant'}
+                  </button>
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded font-medium hover:bg-gray-200 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}    </Layout>
   );
 };
-

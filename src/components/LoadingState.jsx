@@ -1,4 +1,6 @@
-export const LoadingState = ({ message = 'Loading...' }) => {
+import { memo } from 'react';
+
+export const LoadingState = memo(function LoadingState({ message = 'Loading...' }) {
   return (
     <div className="flex items-center justify-center py-12">
       <div className="text-center">
@@ -7,5 +9,5 @@ export const LoadingState = ({ message = 'Loading...' }) => {
       </div>
     </div>
   );
-};
+});
 

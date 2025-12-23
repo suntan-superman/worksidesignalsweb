@@ -4,7 +4,7 @@ import { SeverityBadge } from './SeverityBadge';
 
 const GRID_STORAGE_KEY = 'workside_alerts_grid_columns';
 
-export const AlertsGrid = ({ alerts, isLoading, onAcknowledge, onExplainAlert }) => {
+export const AlertsGrid = ({ alerts, isLoading, onAcknowledge, onExplainAlert, onDelete }) => {
   const gridRef = useRef(null);
 
   // Load saved column widths from localStorage - MUST be before any early returns
@@ -127,6 +127,29 @@ export const AlertsGrid = ({ alerts, isLoading, onAcknowledge, onExplainAlert })
           </button>
         ) : (
           <span style={{ color: '#999', fontSize: '0.75rem' }}>Acknowledged</span>
+        )}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (window.confirm('Are you sure you want to delete this alert?')) {
+                onDelete(props.id);
+              }
+            }}
+            style={{
+              padding: '0.375rem 0.75rem',
+              backgroundColor: '#dc2626',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: '500'
+            }}
+            title="Delete alert"
+          >
+            🗑️
+          </button>
         )}
       </div>
     );

@@ -1,4 +1,6 @@
-export const StatusBadge = ({ status, variant = 'default' }) => {
+import { memo } from 'react';
+
+export const StatusBadge = memo(function StatusBadge({ status, variant = 'default' }) {
   const statusColors = {
     active: 'bg-green-100 text-green-800',
     inactive: 'bg-gray-100 text-gray-800',
@@ -14,5 +16,5 @@ export const StatusBadge = ({ status, variant = 'default' }) => {
       {status}
     </span>
   );
-};
+});
 
