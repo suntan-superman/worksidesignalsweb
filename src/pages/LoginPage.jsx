@@ -211,7 +211,7 @@ export const LoginPage = () => {
           {/* Footer */}
           <div className="bg-gray-50 px-8 py-3 border-t border-gray-100">
             <p className="text-center text-xs text-gray-500">
-              © 2025 <span className="font-semibold">Workside Software</span>. All rights reserved.
+              © {COPYRIGHT.year} <span className="font-semibold">{COPYRIGHT.company}</span>. All rights reserved.
             </p>
             <p className="text-center text-xs text-gray-400 mt-1">
               Powered by OpenAI • Built for Industrial Excellence
